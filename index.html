@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator</title>
+    <style>
+        .calculator {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            max-width: 200px;
+            margin: 0 auto;
+        }
+        .display {
+            grid-column: span 4;
+            text-align: right;
+            padding: 10px;
+            background: #222;
+        }
+        .button {
+            padding: 20px;
+            border: 1px solid #999;
+            text-align: center;
+            cursor: pointer;
+        }
+        .operator {
+            background: #f9a825;
+        }
+        .equals {
+            background: #4caf50;
+            grid-column: span 2;
+        }
+        .clear {
+            background: #e53935;
+            grid-column: span 2;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="display">0</div>
+        <div class="button">7</div>
+        <div class="button">8</div>
+        <div class="button">9</div>
+        <div class="button operator">/</div>
+        <div class="button">4</div>
+        <div class="button">5</div>
+        <div class="button">6</div>
+        <div class="button operator">*</div>
+        <div class="button">1</div>
+        <div class="button">2</div>
+        <div class="button">3</div>
+        <div class="button operator">-</div>
+        <div class="button">0</div>
+        <div class="button">.</div>
+        <div class="button equals">=</div>
+        <div class="button operator">+</div>
+        <div class="button clear">C</div>
+        <div class="button backspace">⌫</div>
+    </div>
+    <script>
+
+document.addEventListener("DOMContentLoaded", function () {
+    const display = document.querySelector(".display");
+    const buttons = document.querySelectorAll(".button");
+
+    let firstNumber = "";
+    let operator = "";
+    let secondNumber = "";
+    let displayValue = "";
+
+    function add(a, b) {
+        return a + b;
+    }
+
+    function subtract(a, b) {
+        return a - b;
+    }
+
+    function multiply(a, b) {
+        return a * b;
+    }
+
+    function divide(a, b) {
+        if (b === 0) {
+            return "Error: Division by Zero!";
+        }
+        return a / b;
+    }
+
+    function operate(operator, num1, num2) {
+        let result;
+        switch (operator) {
+            case '+':
+                result = add(num1, num2);
+                break;
+            case '-':
+                result = subtract(num1, num2);
+                break;
+            case '*':
+                result = multiply(num1, num2);
+                break;
+            case '/':
+                result = divide(num1, num2);
+                break;
+            default:
+                return null;
+        }
+        return Math.round(result * 100000000) / 100000000; // Adjust decimal places as needed
+    }
+
+    buttons.forEach(button => {
+        button.addEventListener("click", () => {
+            const value = button.textContent;
+
+            if (button.classList.contains("operator")) {
+                if (firstNumber && operator && secondNumber) {
+                    firstNumber = operate(operator, parseFloat(firstNumber), parseFloat(secondNumber)).toString();
+                    secondNumber = "";
+                }
+                operator = value;
+                displayValue = "";
+            } else if (button.classList.contains("equals")) {
+                if (firstNumber && operator && secondNumber) {
+                    display.textContent = operate(operator, parseFloat(firstNumber), parseFloat(secondNumber));
+                    firstNumber = "";
+                    operator = "";
+                    secondNumber = "";
+                    displayValue = display.textContent;
+                } else {
+                    display.textContent = "Error";
+                }
+            } else if (button.classList.contains("clear")) {
+                firstNumber = "";
+                operator = "";
+                secondNumber = "";
+                display.textContent = "0";
+                displayValue = "";
+            } else if (button.classList.contains("backspace")) {
+                displayValue = displayValue.slice(0, -1);
+                display.textContent = displayValue || "0";
+
+                if (operator) {
+                    secondNumber = displayValue;
+                } else {
+                    firstNumber = displayValue;
+                }
+            } else {
+                if (value === "." && displayValue.includes(".")) return;
+
+                if (operator) {
+                    secondNumber += value;
+                    displayValue += value;
+                } else {
+                    firstNumber += value;
+                    displayValue += value;
+                }
+                display.textContent = displayValue;
+            }
+        });
+    });
+
+    document.addEventListener("keydown", (event) => {
+        const key = event.key;
+
+        if (!isNaN(key)) {
+            handleNumberInput(key);
+        } else if (["+", "-", "*", "/"].includes(key)) {
+            handleOperatorInput(key);
+        } else if (key === "Enter" || key === "=") {
+            handleEqualsInput();
+        } else if (key === "Backspace") {
+            handleBackspaceInput();
+        } else if (key === "Escape") {
+            handleClearInput();
+        } else if (key === ".") {
+            handleDecimalInput(key);
+        }
+    });
+
+    function handleNumberInput(number) {
+        if (operator) {
+            secondNumber += number;
+            displayValue += number;
+        } else {
+            firstNumber += number;
+            displayValue += number;
+        }
+        display.textContent = displayValue;
+    }
+
+    function handleOperatorInput(op) {
+        if (firstNumber && operator && secondNumber) {
+            firstNumber = operate(operator, parseFloat(firstNumber), parseFloat(secondNumber)).toString();
+            secondNumber = "";
+        }
+        operator = op;
+        displayValue = "";
+    }
+
+    function handleEqualsInput() {
+        if (firstNumber && operator && secondNumber) {
+            display.textContent = operate(operator, parseFloat(firstNumber), parseFloat(secondNumber));
+            firstNumber = "";
+            operator = "";
+            secondNumber = "";
+            displayValue = display.textContent;
+        } else {
+            display.textContent = "Error";
+        }
+    }
+
+    function handleBackspaceInput() {
+        displayValue = displayValue.slice(0, -1);
+        display.textContent = displayValue || "0";
+
+        if (operator) {
+            secondNumber = displayValue;
+        } else {
+            firstNumber = displayValue;
+        }
+    }
+
+    function handleClearInput() {
+        firstNumber = "";
+        operator = "";
+        secondNumber = "";
+        display.textContent = "0";
+        displayValue = "";
+    }
+
+    function handleDecimalInput(decimal) {
+        if (displayValue.includes(".")) return;
+
+        if (operator) {
+            secondNumber += decimal;
+            displayValue += decimal;
+        } else {
+            firstNumber += decimal;
+            displayValue += decimal;
+        }
+        display.textContent = displayValue;
+    }
+});
+
+
+    </script>
+
+</body>
+</html>
+
